@@ -34,8 +34,8 @@ env.reset()
 
 # Initialize the Neural Network used to estimate state-value function
 input_size = env.observation_space.shape[0] # 8D State Space
-hidden_size_1 = 64
-hidden_size_2 = 64
+hidden_size_1 = 128
+hidden_size_2 = 128
 output_size = env.action_space.n # 4 possible actions
 nn = dqn.NeuralNetwork(input_size, hidden_size_1, hidden_size_2, output_size)
 nn_target = dqn.NeuralNetwork(input_size, hidden_size_1, hidden_size_2, output_size)
@@ -54,8 +54,8 @@ alpha = 0.0005
 epsilon = 0.99
 n_episodes = 1000
 max_iters = 1000
-eps_dec_type = 'linear'
-rew_stop_th = 100
+eps_dec_type = 'exp'
+rew_stop_th = 200
 debug = False
 episodes_reward, episodes_steps = dqn.dqn(env, nn, nn_target, B, gamma, alpha, epsilon, n_episodes, max_iters, eps_dec_type, rew_stop_th, debug)
 
