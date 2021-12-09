@@ -51,11 +51,13 @@ class NeuralNetwork(nn.Module) :
 
 # EXPERIENCE REPLAY BUFFER CLASS
 class ExpRepBuffer :
-    def __init__(self, L = 15000, C = 0, N = 64) :
+    def __init__(self, L = 15000, C = 0, N = 64, combined=False) :
         # Experience buffer properties
         self.L = L 
         self.C = int(L/N) if C == 0 else C
         self.N = N
+        # Is it a combined exp. replay buffer?
+        self.combined = combined
         # Experience buffer
         self.buffer = []
     
@@ -92,7 +94,10 @@ class ExpRepBuffer :
         self.buffer.append(z)
     
     def random_batch(self) :
-        batch = zip(*(random.sample(self.buffer,self.N-1)+[self.buffer[-1]]))
+        if self.combined :
+            batch = zip(*(random.sample(self.buffer[:-1],self.N-1)+[self.buffer[-1]]))
+        else : 
+            batch = zip(*(random.sample(self.buffer,self.N)))
         states, actions, rewards, next_states, dones = batch
         actions = [[actions[i]] for i in range(len(actions))]
         states_tensor = torch.tensor(np.array(states), requires_grad=False, dtype=torch.float32)
@@ -109,6 +114,7 @@ class ExpRepBuffer :
         print('Buffer size L = ',self.L)
         print('Target Network Update Period C = ',self.C)
         print('Trainig batch size N = ',self.N)
+        print('Combined = ',self.combined)
         print('\n--------------------------------------------------\n')
 
 def running_average(x, N):
@@ -175,6 +181,7 @@ def dqn(env, nn, nn_target, B, gamma=0.99, alpha = 0.0005, epsilon = 0.99, n_epi
     n_ep_running_average = 50
     episodes_reward = []
     episodes_steps = [] 
+    episodes_epsilons = []
 
     # Initialize target network
     nn_target.load_state_dict(nn.state_dict())
@@ -196,11 +203,6 @@ def dqn(env, nn, nn_target, B, gamma=0.99, alpha = 0.0005, epsilon = 0.99, n_epi
         # Reset enviroment
         s = env.reset()
         episode_reward = 0
-
-        if debug and (e%30 == 0 or e==n_episodes-1) : 
-            print('\n\nEPISODE ',e)
-            print('Initial state = ',s)
-            time.sleep(5)
 
         # For each step in the episode
         for i in range(max_iters):
@@ -252,16 +254,6 @@ def dqn(env, nn, nn_target, B, gamma=0.99, alpha = 0.0005, epsilon = 0.99, n_epi
             # If the episode is finished, we leave the for loop
             if d :
                 break
-            
-            if debug and (e%30 == 0 or e==n_episodes-1) : 
-                print('\nIteration ',i)
-                print('Current state = ',s)
-                print('Current action = ',a)
-                print('Next state = ',next_s)
-                #for parameter in nn.parameters():
-                #    print(parameter.grad.view(-1))
-                #env.render()
-                time.sleep(0.05)
 
             # Update next state and steps count
             s = next_s
@@ -270,6 +262,7 @@ def dqn(env, nn, nn_target, B, gamma=0.99, alpha = 0.0005, epsilon = 0.99, n_epi
         # Append total episode collected reward and learning rate
         episodes_reward.append(episode_reward)
         episodes_steps.append(i)
+        episodes_epsilons.append(epsilon)
 
         # Decay epsilon
         Z = 0.9*n_episodes
@@ -278,13 +271,8 @@ def dqn(env, nn, nn_target, B, gamma=0.99, alpha = 0.0005, epsilon = 0.99, n_epi
         elif eps_dec_type == eps_dec_types[1] :
             epsilon = max(epsilon_min, epsilon_max*(epsilon_min/epsilon_max)**((e-1)/(Z-1)))
         elif eps_dec_type == eps_dec_types[2] :
-            if e == int(n_episodes*(3/10)) :
-                epsilon = epsilon/2
-            elif e == int(n_episodes*(5/10)) :
-                epsilon = epsilon/2
-            elif e == int(n_episodes*(7/10)) :
-                epsilon = epsilon/2
-            elif e == int(n_episodes*(9/10)) :
+            if e == int(n_episodes*(25/100)) or e == int(n_episodes*(50/100)) \
+            or e == int(n_episodes*(65/100)) or e == int(n_episodes*(80/100)) :
                 epsilon = epsilon/2
 
         # Updates the tqdm update bar with fresh information
@@ -299,4 +287,4 @@ def dqn(env, nn, nn_target, B, gamma=0.99, alpha = 0.0005, epsilon = 0.99, n_epi
             print('\nEnvironment solved in {:d} episodes!\tAverage Score: {:.2f}'.format(e, running_average(episodes_reward,n_ep_running_average)[-1]))
             break
 
-    return episodes_reward, episodes_steps
+    return episodes_reward, episodes_steps, episodes_epsilons
