@@ -97,7 +97,7 @@ for e in range(N) :
     episodes_steps_dqn.append(i_max_dqn)
 
 
-## PLOT RESULTS
+# PLOT RESULTS
 fig, ax = plt.subplots(nrows=2, ncols=2, figsize=(16, 9))
 ax[0,0].plot([i for i in range(1, len(episodes_reward_random)+1)], episodes_reward_random, label='Episode reward')
 ax[0,0].set_xlabel('Episodes')
