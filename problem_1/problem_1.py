@@ -53,7 +53,7 @@ B.show()
 gamma = 0.99
 alpha = 0.0005
 epsilon = 0.99
-n_episodes = 1000
+n_episodes = 2000
 max_iters = 1000
 eps_dec_type = 'exp'
 rew_stop_th = 200
