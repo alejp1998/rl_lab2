@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="#FFFFFF" stroke="#0F172A" stroke-width="2.5"/>
+  <!-- lander body -->
+  <polygon points="32,8 44,40 32,34 20,40" fill="none" stroke="#0F172A" stroke-width="2.5" stroke-linejoin="round"/>
+  <!-- legs -->
+  <line x1="24" y1="43" x2="19" y2="52" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+  <line x1="40" y1="43" x2="45" y2="52" stroke="#0F172A" stroke-width="3" stroke-linecap="round"/>
+  <!-- pad -->
+  <rect x="13" y="50" width="38" height="5" rx="2.5" fill="#0F172A"/>
+  <!-- flame -->
+  <path d="M27 42 l-3 7 l6 -2 l-1 6 l6 -6" fill="none" stroke="#F59E0B" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
