@@ -7,22 +7,52 @@
   var S = window.RL2;
   var canvas = document.getElementById("view");
   var ctx = canvas.getContext("2d");
-  var $id = function (id) { return document.getElementById(id); };
+  var chartCanvas = document.getElementById("dqn-chart");
+  var chartCtx = chartCanvas ? chartCanvas.getContext("2d") : null;
+  var $id = function (id) {
+    return document.getElementById(id);
+  };
 
   var PAL = {
     dark: {
-      sky1: "#0b1020", sky2: "#101b33", star: "#e2e8f0",
-      ground: "#1e293b", groundEdge: "#334155", pad: "#fbbf24", padEdge: "#b45309",
-      lander: "#e2e8f0", landerEdge: "#94a3b8", flame: "#f59e0b", flameHot: "#fde68a",
-      text: "#e2e8f0", muted: "#94a3b8", faint: "#64748b",
-      chart: "#22d3ee", chartGrid: "rgba(148,163,184,0.15)", ok: "#34d399", bad: "#f87171",
+      sky1: "#0b1020",
+      sky2: "#101b33",
+      star: "#e2e8f0",
+      ground: "#1e293b",
+      groundEdge: "#334155",
+      pad: "#fbbf24",
+      padEdge: "#b45309",
+      lander: "#e2e8f0",
+      landerEdge: "#94a3b8",
+      flame: "#f59e0b",
+      flameHot: "#fde68a",
+      text: "#e2e8f0",
+      muted: "#94a3b8",
+      faint: "#64748b",
+      chart: "#22d3ee",
+      chartGrid: "rgba(148,163,184,0.15)",
+      ok: "#34d399",
+      bad: "#f87171",
     },
     light: {
-      sky1: "#eaf2fb", sky2: "#dbe8f8", star: "#334155",
-      ground: "#d7dee9", groundEdge: "#94a3b8", pad: "#f59e0b", padEdge: "#b45309",
-      lander: "#0f172a", landerEdge: "#334155", flame: "#f97316", flameHot: "#fde68a",
-      text: "#0f172a", muted: "#475569", faint: "#64748b",
-      chart: "#0891b2", chartGrid: "rgba(51,65,85,0.12)", ok: "#059669", bad: "#dc2626",
+      sky1: "#eaf2fb",
+      sky2: "#dbe8f8",
+      star: "#334155",
+      ground: "#d7dee9",
+      groundEdge: "#94a3b8",
+      pad: "#f59e0b",
+      padEdge: "#b45309",
+      lander: "#0f172a",
+      landerEdge: "#334155",
+      flame: "#f97316",
+      flameHot: "#fde68a",
+      text: "#0f172a",
+      muted: "#475569",
+      faint: "#64748b",
+      chart: "#0891b2",
+      chartGrid: "rgba(51,65,85,0.12)",
+      ok: "#059669",
+      bad: "#dc2626",
     },
   };
 
@@ -67,8 +97,12 @@
     var r = $id("hud-result");
     r.className = "hud-result " + cls;
     r.innerHTML =
-      '<div class="hud-result-title">' + title + "</div>" +
-      '<div class="hud-result-sub">' + sub + "</div>";
+      '<div class="hud-result-title">' +
+      title +
+      "</div>" +
+      '<div class="hud-result-sub">' +
+      sub +
+      "</div>";
   }
   function clearResult() {
     $id("hud-result").className = "hud-result hidden";
@@ -111,7 +145,11 @@
 
   function avgReward() {
     var tail = rewards.slice(-25);
-    return tail.reduce(function (a, b) { return a + b; }, 0) / tail.length;
+    return (
+      tail.reduce(function (a, b) {
+        return a + b;
+      }, 0) / tail.length
+    );
   }
 
   // ---------------------------------------------------------------- loop
@@ -147,7 +185,11 @@
         if (mode === "learn" && res.reward > 50) {
           log("🛬 Landing on episode " + episode + "!");
         }
-        setResult("🛬 Safe landing!", "+100 · the pad cushioned the touchdown.", "win");
+        setResult(
+          "🛬 Safe landing!",
+          "+100 · the pad cushioned the touchdown.",
+          "win",
+        );
       } else if (res.info.crashed) {
         crashes++;
         setResult("💥 Crash!", "Too fast or off the pad.", "fail");
@@ -191,14 +233,12 @@
     ctx.fillStyle = p.sky1;
     ctx.fillRect(0, 0, w, h);
 
-    var chartH = Math.max(80, h * 0.18);
-    var gw = w;
-    var gh = h - chartH;
+    var gh = h;
 
     // stars (deterministic pseudo-random)
     for (var i = 0; i < 40; i++) {
-      var sx = ((i * 97) % w);
-      var sy = ((i * 53) % (chartH + gh * 0.6));
+      var sx = (i * 97) % w;
+      var sy = (i * 53) % gh;
       ctx.fillStyle = p.star;
       ctx.globalAlpha = 0.25 + ((i * 7) % 10) / 20;
       ctx.fillRect(sx, sy, 1.5, 1.5);
@@ -206,7 +246,7 @@
     ctx.globalAlpha = 1;
 
     // ground
-    var groundY = chartH + gh - 14;
+    var groundY = gh - 14;
     ctx.fillStyle = p.ground;
     ctx.fillRect(0, groundY, w, h - groundY);
     ctx.strokeStyle = p.groundEdge;
@@ -292,7 +332,7 @@
     ctx.setLineDash([]);
 
     // chart
-    drawChart(w, chartH, p);
+    drawChartComponent();
 
     // mode + episode label
     ctx.fillStyle = p.muted;
@@ -300,35 +340,44 @@
     ctx.textAlign = "left";
     ctx.fillText(
       mode === "learn"
-        ? "DQN learning · ε=" + epsilon.toFixed(2) + " · copies=" + (dqn ? dqn.copies : 0)
+        ? "DQN learning · ε=" +
+            epsilon.toFixed(2) +
+            " · copies=" +
+            (dqn ? dqn.copies : 0)
         : "manual flight — ← → thrusters · ↑ main",
       12,
-      chartH + 18,
+      24,
     );
   }
 
-  function drawChart(w, chartH, p) {
+  function drawChartComponent() {
+    if (!chartCtx || !chartCanvas) return;
+    var c = chartCtx;
+    var w = chartCanvas.width / Math.max(1, window.devicePixelRatio || 1);
+    var h = chartCanvas.height / Math.max(1, window.devicePixelRatio || 1);
+    var p = pal();
     var m = 40;
-    ctx.fillStyle = p.sky1;
-    ctx.fillRect(m, 8, w - m * 2, chartH - 16);
-    ctx.strokeStyle = p.chartGrid;
-    ctx.beginPath();
+    c.clearRect(0, 0, w, h);
+    c.fillStyle = p.sky1;
+    c.fillRect(m, 6, w - m * 2, h - 12);
+    c.strokeStyle = p.chartGrid;
+    c.beginPath();
     for (var i = 0; i <= 4; i++) {
-      var y = 8 + ((chartH - 16) * i) / 4;
-      ctx.moveTo(m, y);
-      ctx.lineTo(w - m, y);
+      var y = 6 + ((h - 12) * i) / 4;
+      c.moveTo(m, y);
+      c.lineTo(w - m, y);
     }
-    ctx.stroke();
-    ctx.fillStyle = p.muted;
-    ctx.font = "10px system-ui";
-    ctx.textAlign = "left";
-    ctx.fillText("episode reward (25-ep running avg)", m + 6, 22);
+    c.stroke();
+    c.fillStyle = p.muted;
+    c.font = "10px system-ui";
+    c.textAlign = "left";
+    c.fillText("episode reward (25-ep running avg)", m + 6, 20);
 
     if (rewards.length < 2) {
-      ctx.fillStyle = p.faint;
-      ctx.textAlign = "center";
-      ctx.font = "600 12px system-ui";
-      ctx.fillText("training…", w / 2, chartH / 2 + 4);
+      c.fillStyle = p.faint;
+      c.textAlign = "center";
+      c.font = "600 12px system-ui";
+      c.fillText("training…", w / 2, h / 2 + 4);
       return;
     }
     var n = rewards.length;
@@ -336,20 +385,24 @@
     for (var e = 0; e < n; e++) {
       var from = Math.max(0, e - 24);
       var slice = rewards.slice(from, e + 1);
-      data.push(slice.reduce(function (a, b) { return a + b; }, 0) / slice.length);
+      data.push(
+        slice.reduce(function (a, b) {
+          return a + b;
+        }, 0) / slice.length,
+      );
     }
     var minR = Math.min.apply(null, data) - 10;
     var maxR = Math.max.apply(null, data) + 10;
-    ctx.strokeStyle = p.chart;
-    ctx.lineWidth = 2;
-    ctx.beginPath();
+    c.strokeStyle = p.chart;
+    c.lineWidth = 2;
+    c.beginPath();
     for (var k = 0; k < data.length; k++) {
       var x = m + (k / Math.max(1, n - 1)) * (w - m * 2);
-      var y = 8 + (chartH - 16) * (1 - (data[k] - minR) / (maxR - minR || 1));
-      if (k === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
+      var y = 6 + (h - 12) * (1 - (data[k] - minR) / (maxR - minR || 1));
+      if (k === 0) c.moveTo(x, y);
+      else c.lineTo(x, y);
     }
-    ctx.stroke();
+    c.stroke();
   }
 
   // ---------------------------------------------------------------- input
@@ -362,7 +415,15 @@
     }
     keys[e.code] = true;
     if (mode === "play") {
-      var names = { ArrowLeft: "←", ArrowRight: "→", ArrowUp: "↑", KeyW: "↑", KeyA: "←", KeyD: "→", Space: "🚀" };
+      var names = {
+        ArrowLeft: "←",
+        ArrowRight: "→",
+        ArrowUp: "↑",
+        KeyW: "↑",
+        KeyA: "←",
+        KeyD: "→",
+        Space: "🚀",
+      };
       if (names[e.code]) markKey(names[e.code] + " — thrust");
     }
   });
@@ -409,16 +470,19 @@
   }
 
   function wire() {
-    ["gamma", "alpha", "eps", "epsdecay", "L", "N", "speed"].forEach(function (k) {
-      $id("dqn-" + k).addEventListener("input", function () {
-        $id("dqn-" + k + "-v").textContent = k === "speed" ? this.value + "×" : this.value;
-        readCfg();
-        if ((k === "L" || k === "N") && dqn) {
-          makeDQN();
-          log("🧠 Network rebuilt with new buffer config.");
-        }
-      });
-    });
+    ["gamma", "alpha", "eps", "epsdecay", "L", "N", "speed"].forEach(
+      function (k) {
+        $id("dqn-" + k).addEventListener("input", function () {
+          $id("dqn-" + k + "-v").textContent =
+            k === "speed" ? this.value + "×" : this.value;
+          readCfg();
+          if ((k === "L" || k === "N") && dqn) {
+            makeDQN();
+            log("🧠 Network rebuilt with new buffer config.");
+          }
+        });
+      },
+    );
 
     $id("btn-learn").addEventListener("click", function () {
       mode = "learn";
@@ -440,16 +504,26 @@
     });
 
     $id("btn-theme").addEventListener("click", function () {
-      var t = document.documentElement.getAttribute("data-theme") === "dark" ? "light" : "dark";
+      var t =
+        document.documentElement.getAttribute("data-theme") === "dark"
+          ? "light"
+          : "dark";
       document.documentElement.setAttribute("data-theme", t);
-      try { localStorage.setItem("theme", t); } catch (e) {}
+      try {
+        localStorage.setItem("theme", t);
+      } catch (e) {}
       applyTheme();
     });
-    window.matchMedia("(prefers-color-scheme: dark)").addEventListener("change", function (ev) {
-      if (localStorage.getItem("theme")) return;
-      document.documentElement.setAttribute("data-theme", ev.matches ? "dark" : "light");
-      applyTheme();
-    });
+    window
+      .matchMedia("(prefers-color-scheme: dark)")
+      .addEventListener("change", function (ev) {
+        if (localStorage.getItem("theme")) return;
+        document.documentElement.setAttribute(
+          "data-theme",
+          ev.matches ? "dark" : "light",
+        );
+        applyTheme();
+      });
 
     $id("btn-restart").addEventListener("click", function () {
       makeDQN();
@@ -477,7 +551,9 @@
     sizeCanvas();
     makeDQN();
     log("🚀 Lunar Lander loaded — DQN learning with replay + target networks.");
-    log("📚 Lab 2: LunarLander-v2 · NN 64-64 · L=16384 · C=L/N · N=64 (ported).");
+    log(
+      "📚 Lab 2: LunarLander-v2 · NN 64-64 · L=16384 · C=L/N · N=64 (ported).",
+    );
     updateHud();
 
     function loop() {

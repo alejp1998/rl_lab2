@@ -13,7 +13,9 @@
           else
             document.documentElement.setAttribute(
               "data-theme",
-              window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light",
+              window.matchMedia("(prefers-color-scheme: dark)").matches
+                ? "dark"
+                : "light",
             );
         } catch (e) {}
       })();
@@ -25,17 +27,50 @@
       <div class="brand">
         <div class="brand-logo">
           <svg viewBox="0 0 64 64" width="26" height="26">
-            <rect x="2" y="2" width="60" height="60" rx="14" fill="#FFFFFF" stroke="#0F172A" stroke-width="2.5" />
-            <polygon points="32,10 44,40 32,34 20,40" fill="none" stroke="#0F172A" stroke-width="2.5" stroke-linejoin="round" />
-            <line x1="24" y1="44" x2="20" y2="52" stroke="#0F172A" stroke-width="3" stroke-linecap="round" />
-            <line x1="40" y1="44" x2="44" y2="52" stroke="#0F172A" stroke-width="3" stroke-linecap="round" />
+            <rect
+              x="2"
+              y="2"
+              width="60"
+              height="60"
+              rx="14"
+              fill="#FFFFFF"
+              stroke="#0F172A"
+              stroke-width="2.5"
+            />
+            <polygon
+              points="32,10 44,40 32,34 20,40"
+              fill="none"
+              stroke="#0F172A"
+              stroke-width="2.5"
+              stroke-linejoin="round"
+            />
+            <line
+              x1="24"
+              y1="44"
+              x2="20"
+              y2="52"
+              stroke="#0F172A"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
+            <line
+              x1="40"
+              y1="44"
+              x2="44"
+              y2="52"
+              stroke="#0F172A"
+              stroke-width="3"
+              stroke-linecap="round"
+            />
             <rect x="16" y="50" width="32" height="6" rx="3" fill="#0F172A" />
             <circle cx="32" cy="18" r="3" fill="#0F172A" />
           </svg>
         </div>
         <div>
           <h1>RL Lab 2 — Interactive <span class="badge">WEB EDITION</span></h1>
-          <div class="subtitle">Lunar Lander · Deep Q-Network (replay + target nets)</div>
+          <div class="subtitle">
+            Lunar Lander · Deep Q-Network (replay + target nets)
+          </div>
         </div>
       </div>
       <div class="header-actions">
@@ -48,6 +83,7 @@
     <main class="cockpit">
       <div class="stage-wrap">
         <div class="stage-panel" id="stage-panel">
+          <canvas id="dqn-chart" class="chart-box"></canvas>
           <canvas id="view"></canvas>
         </div>
       </div>
@@ -56,11 +92,21 @@
         <section class="panel">
           <h2>🚀 Mission</h2>
           <div class="hud">
-            <div class="hud-row"><span>Mode</span><b id="hud-mode">Learn</b></div>
-            <div class="hud-row"><span>Episode</span><b id="hud-episode">0</b></div>
-            <div class="hud-row"><span>Reward (avg 25)</span><b id="hud-reward">—</b></div>
-            <div class="hud-row"><span>Landings / Crashes</span><b id="hud-stats">0 / 0</b></div>
-            <div class="hud-row"><span>Fuel</span><b id="hud-fuel">100%</b></div>
+            <div class="hud-row">
+              <span>Mode</span><b id="hud-mode">Learn</b>
+            </div>
+            <div class="hud-row">
+              <span>Episode</span><b id="hud-episode">0</b>
+            </div>
+            <div class="hud-row">
+              <span>Reward (avg 25)</span><b id="hud-reward">—</b>
+            </div>
+            <div class="hud-row">
+              <span>Landings / Crashes</span><b id="hud-stats">0 / 0</b>
+            </div>
+            <div class="hud-row">
+              <span>Fuel</span><b id="hud-fuel">100%</b>
+            </div>
           </div>
           <div id="hud-result" class="hud-result hidden"></div>
         </section>
@@ -68,17 +114,89 @@
         <section class="panel">
           <h2>🕹️ Controls</h2>
           <div class="mode-row">
-            <button class="btn mode-btn active" id="btn-learn">🧠 Learn (DQN)</button>
+            <button class="btn mode-btn active" id="btn-learn">
+              🧠 Learn (DQN)
+            </button>
             <button class="btn mode-btn" id="btn-play">🎮 Fly</button>
           </div>
           <div id="dqn-sliders">
-            <label class="slider-row">γ (gamma) <input id="dqn-gamma" type="range" min="0.5" max="0.999" step="0.001" value="0.99" /><b id="dqn-gamma-v">0.99</b></label>
-            <label class="slider-row">α (learning rate) <input id="dqn-alpha" type="range" min="0.0001" max="0.01" step="0.0001" value="0.001" /><b id="dqn-alpha-v">0.001</b></label>
-            <label class="slider-row">ε (exploration) <input id="dqn-eps" type="range" min="0" max="0.9" step="0.05" value="0.9" /><b id="dqn-eps-v">0.90</b></label>
-            <label class="slider-row">ε decay <input id="dqn-epsdecay" type="range" min="0.9" max="0.9995" step="0.0005" value="0.993" /><b id="dqn-epsdecay-v">0.993</b></label>
-            <label class="slider-row">Buffer L <input id="dqn-L" type="range" min="1000" max="20000" step="500" value="8000" /><b id="dqn-L-v">8000</b></label>
-            <label class="slider-row">Batch N <input id="dqn-N" type="range" min="8" max="128" step="8" value="32" /><b id="dqn-N-v">32</b></label>
-            <label class="slider-row">Speed <input id="dqn-speed" type="range" min="1" max="10" step="1" value="4" /><b id="dqn-speed-v">4×</b></label>
+            <label class="slider-row"
+              >γ (gamma)
+              <input
+                id="dqn-gamma"
+                type="range"
+                min="0.5"
+                max="0.999"
+                step="0.001"
+                value="0.99"
+              /><b id="dqn-gamma-v">0.99</b></label
+            >
+            <label class="slider-row"
+              >α (learning rate)
+              <input
+                id="dqn-alpha"
+                type="range"
+                min="0.0001"
+                max="0.01"
+                step="0.0001"
+                value="0.001"
+              /><b id="dqn-alpha-v">0.001</b></label
+            >
+            <label class="slider-row"
+              >ε (exploration)
+              <input
+                id="dqn-eps"
+                type="range"
+                min="0"
+                max="0.9"
+                step="0.05"
+                value="0.9"
+              /><b id="dqn-eps-v">0.90</b></label
+            >
+            <label class="slider-row"
+              >ε decay
+              <input
+                id="dqn-epsdecay"
+                type="range"
+                min="0.9"
+                max="0.9995"
+                step="0.0005"
+                value="0.993"
+              /><b id="dqn-epsdecay-v">0.993</b></label
+            >
+            <label class="slider-row"
+              >Buffer L
+              <input
+                id="dqn-L"
+                type="range"
+                min="1000"
+                max="20000"
+                step="500"
+                value="8000"
+              /><b id="dqn-L-v">8000</b></label
+            >
+            <label class="slider-row"
+              >Batch N
+              <input
+                id="dqn-N"
+                type="range"
+                min="8"
+                max="128"
+                step="8"
+                value="32"
+              /><b id="dqn-N-v">32</b></label
+            >
+            <label class="slider-row"
+              >Speed
+              <input
+                id="dqn-speed"
+                type="range"
+                min="1"
+                max="10"
+                step="1"
+                value="4"
+              /><b id="dqn-speed-v">4×</b></label
+            >
           </div>
           <div class="keys">
             <b>← / →</b> lateral thrusters<br />
@@ -95,7 +213,8 @@
     </main>
 
     <footer class="hintbar">
-      land softly on the pad (0.5, ground) · learn mode trains a DQN with replay + target nets
+      land softly on the pad (0.5, ground) · learn mode trains a DQN with replay
+      + target nets
     </footer>
 
     <div id="guide" class="modal hidden">
@@ -105,38 +224,46 @@
         <h2>📖 About this page</h2>
         <h3>🎓 The Lab</h3>
         <p>
-          <b>Reinforcement Learning Lab 2</b> (KTH/UPM, 2021) trains a <b>Deep Q-Network</b>
-          on <b>LunarLander-v2</b> (OpenAI Gym): a neural network (64-64 hidden layers)
-          learns to land a lunar module on a pad, using an <b>experience replay buffer</b>
-          (L=16384), <b>target networks</b> synced every C steps, ε-greedy exploration
+          <b>Reinforcement Learning Lab 2</b> (KTH/UPM, 2021) trains a
+          <b>Deep Q-Network</b> on <b>LunarLander-v2</b> (OpenAI Gym): a neural
+          network (64-64 hidden layers) learns to land a lunar module on a pad,
+          using an <b>experience replay buffer</b> (L=16384),
+          <b>target networks</b> synced every C steps, ε-greedy exploration
           decaying from 0.99, and N=64 minibatches.
         </p>
         <h3>🚀 The environment</h3>
         <p>
-          This web edition uses a simplified 2D lander with the same reward logic:
-          <b>+100</b> for a safe landing on the pad (slow descent, small lateral speed),
-          <b>-100</b> for a crash, <b>-1</b> per step, fuel consumption for thrusters.
-          Four actions: none, left, main engine, right.
+          This web edition uses a simplified 2D lander with the same reward
+          logic:
+          <b>+100</b> for a safe landing on the pad (slow descent, small lateral
+          speed), <b>-100</b> for a crash, <b>-1</b> per step, fuel consumption
+          for thrusters. Four actions: none, left, main engine, right.
         </p>
         <h3>🧠 Learn mode</h3>
         <p>
-          A DQN (5→64→64→4) trains live in your browser — the exact same recipe as
-          the lab: replay buffer, target network (copied every C=L/N steps), Adam updates
-          and ε-greedy decay. Watch the reward curve climb and the lander learn to hover
-          and settle on the pad. All hyperparameters (γ, α, ε, decay, L, N, speed) are
-          adjustable while it trains.
+          A DQN (5→64→64→4) trains live in your browser — the exact same recipe
+          as the lab: replay buffer, target network (copied every C=L/N steps),
+          Adam updates and ε-greedy decay. Watch the reward curve climb and the
+          lander learn to hover and settle on the pad. All hyperparameters (γ,
+          α, ε, decay, L, N, speed) are adjustable while it trains.
         </p>
         <h3>🎮 Fly mode</h3>
         <p>
-          Take manual control: <b>← / →</b> lateral thrusters, <b>↑ / W / Space</b> main
-          engine. Land with low vertical speed inside the pad area to score +100.
+          Take manual control: <b>← / →</b> lateral thrusters,
+          <b>↑ / W / Space</b> main engine. Land with low vertical speed inside
+          the pad area to score +100.
         </p>
         <h3>🖥️ Implementation</h3>
         <p>
-          The lab's <code>dqn.py</code> (network, replay buffer, ε-greedy) was ported 1:1 to
-          JavaScript (<code>rl2-core.js</code>) with a matching <code>node:test</code> suite.
-          Source:
-          <a href="https://github.com/alejp1998/rl_lab2" target="_blank" rel="noopener">github.com/alejp1998/rl_lab2</a>.
+          The lab's <code>dqn.py</code> (network, replay buffer, ε-greedy) was
+          ported 1:1 to JavaScript (<code>rl2-core.js</code>) with a matching
+          <code>node:test</code> suite. Source:
+          <a
+            href="https://github.com/alejp1998/rl_lab2"
+            target="_blank"
+            rel="noopener"
+            >github.com/alejp1998/rl_lab2</a
+          >.
         </p>
       </div>
     </div>
