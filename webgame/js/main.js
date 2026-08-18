@@ -7,8 +7,6 @@
   var S = window.RL2;
   var canvas = document.getElementById("view");
   var ctx = canvas.getContext("2d");
-  var chartCanvas = document.getElementById("dqn-chart");
-  var chartCtx = chartCanvas ? chartCanvas.getContext("2d") : null;
   var $id = function (id) {
     return document.getElementById(id);
   };
@@ -332,7 +330,10 @@
     ctx.setLineDash([]);
 
     // chart
-    drawChartComponent();
+    if (dqChart && Date.now() - lastChartT > 250) {
+      dqChart.update();
+      lastChartT = Date.now();
+    }
 
     // mode + episode label
     ctx.fillStyle = p.muted;
@@ -350,62 +351,6 @@
     );
   }
 
-  function drawChartComponent() {
-    if (!chartCtx || !chartCanvas) return;
-    var c = chartCtx;
-    var w = chartCanvas.width / Math.max(1, window.devicePixelRatio || 1);
-    var h = chartCanvas.height / Math.max(1, window.devicePixelRatio || 1);
-    var p = pal();
-    var m = 40;
-    c.clearRect(0, 0, w, h);
-    c.fillStyle = p.sky1;
-    c.fillRect(m, 6, w - m * 2, h - 12);
-    c.strokeStyle = p.chartGrid;
-    c.beginPath();
-    for (var i = 0; i <= 4; i++) {
-      var y = 6 + ((h - 12) * i) / 4;
-      c.moveTo(m, y);
-      c.lineTo(w - m, y);
-    }
-    c.stroke();
-    c.fillStyle = p.muted;
-    c.font = "10px system-ui";
-    c.textAlign = "left";
-    c.fillText("episode reward (25-ep running avg)", m + 6, 20);
-
-    if (rewards.length < 2) {
-      c.fillStyle = p.faint;
-      c.textAlign = "center";
-      c.font = "600 12px system-ui";
-      c.fillText("training…", w / 2, h / 2 + 4);
-      return;
-    }
-    var n = rewards.length;
-    var data = [];
-    for (var e = 0; e < n; e++) {
-      var from = Math.max(0, e - 24);
-      var slice = rewards.slice(from, e + 1);
-      data.push(
-        slice.reduce(function (a, b) {
-          return a + b;
-        }, 0) / slice.length,
-      );
-    }
-    var minR = Math.min.apply(null, data) - 10;
-    var maxR = Math.max.apply(null, data) + 10;
-    c.strokeStyle = p.chart;
-    c.lineWidth = 2;
-    c.beginPath();
-    for (var k = 0; k < data.length; k++) {
-      var x = m + (k / Math.max(1, n - 1)) * (w - m * 2);
-      var y = 6 + (h - 12) * (1 - (data[k] - minR) / (maxR - minR || 1));
-      if (k === 0) c.moveTo(x, y);
-      else c.lineTo(x, y);
-    }
-    c.stroke();
-  }
-
-  // ---------------------------------------------------------------- input
   document.addEventListener("keydown", function (e) {
     if (guideOpen) return;
     if (e.code === "KeyR") {
@@ -543,7 +488,40 @@
   }
 
   // ---------------------------------------------------------------- main loop
+  // D3 reward chart (own component, SVG — not canvas/Pixi)
+  function dqAvgData() {
+    var n = rewards.length;
+    var data = [];
+    for (var e = 0; e < n; e++) {
+      var from = Math.max(0, e - 24);
+      var slice = rewards.slice(from, e + 1);
+      data.push(
+        slice.reduce(function (a, b) {
+          return a + b;
+        }, 0) / slice.length,
+      );
+    }
+    return data;
+  }
+  var dqChart = null;
+  var lastChartT = 0;
+  function initChart() {
+    var el = document.getElementById("dqn-chart");
+    if (!el || !window.MiniChart) return;
+    dqChart = window.MiniChart(el, {
+      height: 148,
+      title: "episode reward (25-ep running avg)",
+      emptyText: "training…",
+      pad: 10,
+      getData: dqAvgData,
+      color: function () {
+        return pal().chart;
+      },
+    });
+  }
+
   function init() {
+    initChart();
     applyTheme();
     wireGuide();
     wire();
