@@ -5,6 +5,8 @@
 [![Tests](https://img.shields.io/badge/tests-6%2F6-22C55E?style=flat-square)](tests/)
 [![Play](https://img.shields.io/badge/▶%20Play-Interactive%20Web%20Edition-8B5CF6?style=flat-square)](https://alejp1998.github.io/rl_lab2/)
 
+> **▶️ Play it live:** <https://alejp1998.github.io/rl_lab2/> — train the DQN or fly the lander yourself in your browser.
+
 A **Deep Q-Network** trained from scratch on **LunarLander-v2** (OpenAI Gym),
 built as part of the KTH/UPM Reinforcement Learning course (2021).
 
