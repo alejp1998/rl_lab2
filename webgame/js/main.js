@@ -216,6 +216,10 @@
     var panel = $id("stage-panel");
     var w = panel.clientWidth;
     var h = panel.clientHeight;
+    var chartEl = document.getElementById("dqn-chart");
+    if (chartEl) {
+      h -= chartEl.offsetHeight + 14; // chart box + its margin
+    }
     var dpr = Math.max(1, window.devicePixelRatio || 1);
     canvas.width = Math.floor(w * dpr);
     canvas.height = Math.floor(h * dpr);
