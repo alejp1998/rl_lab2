@@ -488,7 +488,6 @@
 
   function applyTheme() {
     var t = document.documentElement.getAttribute("data-theme");
-    $id("btn-theme").textContent = t === "dark" ? "☀️" : "🌙";
   }
 
   // ---------------------------------------------------------------- main loop
