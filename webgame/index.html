@@ -20,7 +20,7 @@
         } catch (e) {}
       })();
     </script>
-    <link rel="stylesheet" href="style.css?v=1" />
+    <link rel="stylesheet" href="style.css?v=3" />
   </head>
   <body>
     <header class="topbar">
@@ -222,55 +222,113 @@
       <div class="modal-card">
         <button class="modal-close" data-close-guide title="Close">✕</button>
         <h2>📖 About this page</h2>
-        <h3>🎓 The Lab</h3>
-        <p>
-          <b>Reinforcement Learning Lab 2</b> (KTH/UPM, 2021) trains a
-          <b>Deep Q-Network</b> on <b>LunarLander-v2</b> (OpenAI Gym): a neural
-          network (64-64 hidden layers) learns to land a lunar module on a pad,
-          using an <b>experience replay buffer</b> (L=16384),
-          <b>target networks</b> synced every C steps, ε-greedy exploration
-          decaying from 0.99, and N=64 minibatches.
-        </p>
-        <h3>🚀 The environment</h3>
-        <p>
-          This web edition uses a simplified 2D lander with the same reward
-          logic:
-          <b>+100</b> for a safe landing on the pad (slow descent, small lateral
-          speed), <b>-100</b> for a crash, <b>-1</b> per step, fuel consumption
-          for thrusters. Four actions: none, left, main engine, right.
-        </p>
-        <h3>🧠 Learn mode</h3>
-        <p>
-          A DQN (5→64→64→4) trains live in your browser — the exact same recipe
-          as the lab: replay buffer, target network (copied every C=L/N steps),
-          Adam updates and ε-greedy decay. Watch the reward curve climb and the
-          lander learn to hover and settle on the pad. All hyperparameters (γ,
-          α, ε, decay, L, N, speed) are adjustable while it trains.
-        </p>
-        <h3>🎮 Fly mode</h3>
-        <p>
-          Take manual control: <b>← / →</b> lateral thrusters,
-          <b>↑ / W / Space</b> main engine. Land with low vertical speed inside
-          the pad area to score +100.
-        </p>
-        <h3>🖥️ Implementation</h3>
-        <p>
-          The lab's <code>dqn.py</code> (network, replay buffer, ε-greedy) was
-          ported 1:1 to JavaScript (<code>rl2-core.js</code>) with a matching
-          <code>node:test</code> suite. Source:
-          <a
-            href="https://github.com/alejp1998/rl_lab2"
-            target="_blank"
-            rel="noopener"
-            >github.com/alejp1998/rl_lab2</a
-          >.
-        </p>
+        <div class="guide-tabs">
+          <button class="guide-tab active" data-tab="theory">🧠 Theory</button>
+          <button class="guide-tab" data-tab="game">🎮 Game</button>
+        </div>
+
+        <section class="guide-panel" data-tab="theory">
+          <h3>🎓 The Lab</h3>
+          <p>
+            <b>Reinforcement Learning Lab 2</b> (KTH/UPM, 2021) trains a
+            <b>Deep Q-Network (DQN)</b> on OpenAI Gym's LunarLander-v2. The
+            Python implementation (<code>problem_2.py</code>, a 64-64 MLP with
+            replay length 16384) is ported 1:1 to <code>rl2-core.js</code>; the
+            web edition uses a tuned 32-32 network with replay 8000 so learning
+            is visible in real time — the algorithm is identical.
+          </p>
+
+          <h3>🚀 The task</h3>
+          <p>
+            The lander must touch down between the two flags with low velocity.
+            The state is a 5-vector of position, velocity and angle; four
+            discrete actions (none, left, main, right thrust). Rewards: \(+100\)
+            for a safe landing, \(-100\) for a crash, \(-1\) per time step, plus
+            a small shaping bonus for hovering near the target.
+          </p>
+
+          <h3>🧠 Deep Q-Learning</h3>
+          <p>
+            The optimal action-value function satisfies the
+            <b>Bellman equation</b>
+          </p>
+          <p class="math">
+            \[ Q^*(s,a) = \mathbb{E}\!\left[ r + \gamma \max_{a'} Q^*(s',a')
+            \right] \]
+          </p>
+          <p>
+            A neural network \(Q(s,a;\theta)\) approximates it by minimizing the
+            <b>TD loss</b> on sampled transitions:
+          </p>
+          <p class="math">
+            \[ \mathcal{L}(\theta) = \mathbb{E}\!\left[\left( r + \gamma
+            \max_{a'} Q(s',a';\theta^-) - Q(s,a;\theta) \right)^2\right] \]
+          </p>
+          <p>Three ingredients make this stable:</p>
+          <ul>
+            <li>
+              <b>Experience replay</b> — transitions \((s,a,r,s')\) are stored
+              in a buffer and sampled uniformly, decorrelating consecutive
+              updates.
+            </li>
+            <li>
+              <b>Target network</b> \(\theta^-\) — a frozen copy of the network,
+              refreshed every \(C\) steps, so the regression target does not
+              chase the moving estimate.
+            </li>
+            <li>
+              <b>ε-greedy exploration</b> — \(\varepsilon\) decays geometrically
+              per episode (default 0.9 · 0.99<sup>ep</sup>), trading exploration
+              for exploitation. <b>Adam</b> optimizes the loss with clipped TD
+              errors.
+            </li>
+          </ul>
+          <p>
+            The reward chart plots the 25-episode running average; the first
+            safe landing typically appears within ~20-40 episodes with the
+            default parameters.
+          </p>
+        </section>
+
+        <section class="guide-panel hidden" data-tab="game">
+          <h3>🛸 Learn (DQN)</h3>
+          <p>
+            The lander flies itself. The <b>speed</b> slider controls how many
+            physics steps per animation frame (learning rate on screen); γ, α,
+            ε, ε-decay, replay size \(L\) and batch size \(N\) are adjustable —
+            the defaults are the benchmarked ones. Watch the reward curve and
+            the "landings" counter; the best policy is played back at the end.
+          </p>
+          <h3>🎮 Manual flight</h3>
+          <p>
+            Fly with <b>← / →</b> (side thrusters) and <b>↑</b> (main engine),
+            <b>Space</b> waits. Manual flight always runs at 1 physics step per
+            frame regardless of the speed slider. Land between the flags with
+            gentle descent velocity.
+          </p>
+          <h3>🖥️ Source</h3>
+          <p>
+            <a
+              href="https://github.com/alejp1998/rl_lab2"
+              target="_blank"
+              rel="noopener"
+              >github.com/alejp1998/rl_lab2</a
+            >
+            — Python lab, JS port, tests, notebook.
+          </p>
+        </section>
       </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
-    <script src="js/minichart.js?v=2"></script>
-    <script src="js/rl2-core.js?v=1"></script>
-    <script src="js/main.js?v=1"></script>
+    <script
+      src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"
+      id="MathJax-script"
+      async
+    ></script>
+    <script src="js/minichart.js?v=3"></script>
+    <script src="js/rl2-core.js?v=3"></script>
+    <script src="js/guide.js?v=3"></script>
+    <script src="js/main.js?v=3"></script>
   </body>
 </html>

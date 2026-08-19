@@ -172,8 +172,8 @@
         ns: S.stateVec(env),
         done: res.done,
       });
-      // gradient steps
-      for (var g = 0; g < 6; g++) S.dqnTrainStep(dqn);
+      // gradient steps — more updates per step = faster convergence
+      for (var g = 0; g < 8; g++) S.dqnTrainStep(dqn);
     }
 
     if (res.done) {
@@ -534,7 +534,7 @@
     makeDQN();
     log("🚀 Lunar Lander loaded — DQN learning with replay + target networks.");
     log(
-      "📚 Lab 2: LunarLander-v2 · NN 64-64 · L=16384 · C=L/N · N=64 (ported).",
+      "📚 Lab 2: LunarLander-v2 · DQN 32-32 · L=8000 · N=32 (tuned for the web demo; the lab port is 64-64/L=16384).",
     );
     updateHud();
 
