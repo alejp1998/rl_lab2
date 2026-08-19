@@ -193,6 +193,7 @@
       gamma: cfg.gamma,
       alpha: cfg.alpha,
       epsilon: cfg.epsilon,
+      double: !!cfg.double,
       // Adam-lite moments
       m: null,
       v: null,
@@ -239,7 +240,18 @@
 
       var qAll = nnForward(dqn.online, s);
       var targetQ = nnForward(dqn.target, ns);
-      var maxNext = Math.max.apply(null, targetQ);
+      var maxNext;
+      if (dqn.double) {
+        // Double DQN: pick the action with the ONLINE net, value it with the
+        // target net — cuts overestimation, learns faster and more stably
+        var qAllNext = nnForward(dqn.online, ns);
+        var aStar = 0;
+        for (var ai = 1; ai < qAllNext.length; ai++)
+          if (qAllNext[ai] > qAllNext[aStar]) aStar = ai;
+        maxNext = targetQ[aStar];
+      } else {
+        maxNext = Math.max.apply(null, targetQ);
+      }
       var td = r + (done ? 0 : dqn.gamma * maxNext) - qAll[a];
       // clip the TD error (Huber-style stabilisation, standard DQN practice)
       td = Math.max(-20, Math.min(20, td));
