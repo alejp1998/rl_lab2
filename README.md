@@ -21,6 +21,11 @@ built as part of the KTH/UPM Reinforcement Learning course (2021).
 Team: Alejandro Jarabo-Peñas · Xavier de Gibert Duart (KTH Royal Institute of
 Technology, 2021).
 
+### 🖼️ Screenshots
+
+| DQN learning | Manual flight |
+|---|---|
+| ![DQN learning](docs/webgame_learn.png) | ![Manual flight](docs/webgame_fly.png) |
 ## 🎮 Interactive web edition
 
 **[https://alejp1998.github.io/rl_lab2/](https://alejp1998.github.io/rl_lab2/)**
