@@ -228,6 +228,18 @@
         </div>
 
         <section class="guide-panel" data-tab="theory">
+          <h3>💡 The big idea in plain words</h3>
+          <p>
+            The lander learns by <b>replaying memories</b>. It stores what it
+            experienced (situation → action → outcome) and, between flights,
+            practices on random memories — like a pilot studying past landings
+            instead of only flying live. Two brains help: the
+            <b>online</b> brain decides and learns, while a
+            <b>frozen copy</b> (the target network) keeps the scoreboard stable
+            enough to learn against. Exploration comes from <b>ε-greedy</b>:
+            mostly follow the brain, occasionally press a random button — so the
+            lander discovers moves it would never try otherwise.
+          </p>
           <h3>🎓 The Lab</h3>
           <p>
             <b>Reinforcement Learning Lab 2</b> (KTH/UPM, 2021) trains a
